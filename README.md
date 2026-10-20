@@ -1,41 +1,48 @@
 # Mimir MTG (Momir Basic Printer)
 
-Mimir MTG es una aplicación de Android diseñada para llevar el formato "Momir Basic" al mundo físico, permitiendo buscar criaturas por su Valor de Maná Convertido (CMC) a través de la API de Scryfall e imprimirlas instantáneamente en impresoras térmicas portátiles (Cat Printers).
+Mimir MTG is an Android application designed to bring the "Momir Basic" format to the physical world, allowing you to search for creatures by their Converted Mana Cost (CMC) via the Scryfall API and print them instantly on portable thermal printers (Cat Printers).
 
-## Características
+## Features
 
-*   **Búsqueda Momir:** Genera criaturas aleatorias basadas en el CMC ingresado.
-*   **Integración con Scryfall:** Obtiene imágenes de alta calidad y el *Oracle Text* oficial.
-*   **Procesamiento de Imagen Optimizado:**
-    *   Conversión a monocromo mediante **Dithering de Floyd-Steinberg**.
-    *   Filtro de enfoque (High-Pass) para asegurar que el texto de las cartas sea legible en papel térmico.
-    *   Corrección Gamma agresiva para negros profundos.
-*   **Protocolo de Impresión YHK:**
-    *   Implementación de bajo nivel del protocolo BLE para impresoras tipo "Cat Printer".
-    *   Handshake maestro (`1D 49 F0 19`) para desbloqueo de motor en hardware YHK.
-    *   Impresión raster fluida con control de sincronización mecánica (16ms/fila).
+*   **Momir Search:** Generates random creatures based on the entered CMC.
+*   **Scryfall Integration:** Fetches high-quality images and official *Oracle Text*.
+*   **Optimized Image Processing:**
+    *   Monochrome conversion using **Floyd-Steinberg Dithering**.
+    *   Focus filter (High-Pass) to ensure card text is legible on thermal paper.
+    *   Aggressive Gamma correction for deep blacks.
+*   **YHK Printing Protocol:**
+    *   Low-level implementation of the BLE protocol for "Cat Printer" type devices.
+    *   Master handshake (`1D 49 F0 19`) for motor unlocking on YHK hardware.
+    *   Fluid raster printing with mechanical synchronization control (12ms/row).
+    *   Automatic 6-line feed for easy manual cutting.
 
-## Requisitos de Hardware
+## Hardware Requirements
 
-*   **Impresora:** Impresoras térmicas BLE (modelos WalkPrint, GB01, MX05, GT01 y clones YHK).
-*   **Papel:** Rollos térmicos estándar de 57mm.
+*   **Printer:** BLE thermal printers (WalkPrint, GB01, MX05, GT01 models, and YHK clones).
+*   **Paper:** Standard 57mm thermal rolls.
 
-## Stack Tecnológico
+## Technology Stack
 
 *   **UI:** Jetpack Compose (Material 3).
 *   **Networking:** Retrofit 2.9.0 & OkHttp.
-*   **Imágenes:** Coil 2.6.0.
-*   **Bluetooth:** Android Bluetooth Low Energy (BLE) con corrutinas y Mutex para sincronización de buffers.
-*   **Lenguaje:** Kotlin 2.2.10.
+*   **Images:** Coil 2.6.0.
+*   **Bluetooth:** Android Bluetooth Low Energy (BLE) with coroutines and Mutex for buffer synchronization.
+*   **Language:** Kotlin.
 
-## Configuración y Uso
+## Setup and Usage
 
-1.  Asegúrate de que tu impresora esté encendida y vinculada por Bluetooth a tu teléfono.
-2.  Abre Mimir MTG y pulsa en **Configurar Impresora** para seleccionar tu dispositivo.
-3.  Ingresa el CMC deseado y pulsa **Buscar e Imprimir**.
-4.  La aplicación descargará la carta, procesará el dithering y la enviará automáticamente a la impresora.
+1.  Turn on your printer and ensure it is paired via Bluetooth to your phone.
+2.  Open Mimir MTG and tap **Select Printer** to choose your device.
+3.  Enter the desired CMC and tap **Search & Print**.
+4.  The app will download the card, process the dithering, and send it automatically to the printer.
 
-## Créditos
+## Installation
 
-*   **API de Cartas:** [Scryfall](https://scryfall.com/docs/api)
-*   **Protocolo:** Basado en ingeniería inversa de protocolos WalkPrint y ESC/POS para hardware YHK.
+You can download the latest version of the application from the link below:
+
+**[Download Mimir MTG v1.0 APK](app-release.apk)**
+
+## Credits
+
+*   **Card API:** [Scryfall](https://scryfall.com/docs/api)
+*   **Protocol:** Based on reverse engineering of WalkPrint and ESC/POS protocols for YHK hardware.

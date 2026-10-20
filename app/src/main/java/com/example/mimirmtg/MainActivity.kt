@@ -90,7 +90,7 @@ class MainActivity : ComponentActivity() {
 fun BuscadorCartas() {
     val context = LocalContext.current
     val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
-    var numero by remember { mutableStateOf("") }
+    var inputCmc by remember { mutableStateOf("") }
     var cardName by remember { mutableStateOf<String?>(null) }
     var oracleText by remember { mutableStateOf<String?>(null) }
     var combinedBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -128,7 +128,7 @@ fun BuscadorCartas() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 val device = result.device
                 @SuppressLint("MissingPermission")
-                val name = device.name ?: "Desconocido"
+                val name = device.name ?: "Unknown"
                 val address = device.address
                 if (address != null && !pairedDevices.any { it.second == address }) {
                     pairedDevices = (pairedDevices + (name to address)).distinctBy { it.second }
@@ -149,7 +149,7 @@ fun BuscadorCartas() {
                     delay(10000)
                     scanner.stopScan(scanCallback)
                 } catch (e: Exception) {
-                    Log.e("MainActivity", "Error escaneando", e)
+                    Log.e("MainActivity", "Scan error", e)
                 } finally {
                     isScanning = false
                 }
@@ -166,7 +166,7 @@ fun BuscadorCartas() {
             showDeviceSelector = true
             startScan()
         } else {
-            Toast.makeText(context, "Permisos necesarios para Bluetooth", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Bluetooth permissions required", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -177,9 +177,9 @@ fun BuscadorCartas() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-            value = numero,
-            onValueChange = { if (it.all { char -> char.isDigit() }) numero = it },
-            label = { Text("CMC de Criatura Aleatoria (ej: 3)") },
+            value = inputCmc,
+            onValueChange = { if (it.all { char -> char.isDigit() }) inputCmc = it },
+            label = { Text("Random Creature CMC (e.g., 3)") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true
@@ -198,14 +198,14 @@ fun BuscadorCartas() {
                     combinedBitmap = null
                     oracleText = null
                     try {
-                        val valTrimmed = numero.trim()
+                        val valTrimmed = inputCmc.trim()
                         if (valTrimmed.isBlank()) {
-                            Toast.makeText(context, "Ingresa un número para el CMC", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Enter a CMC number", Toast.LENGTH_SHORT).show()
                             isLoading = false
                             return@launch
                         }
                         val query = "t:creature cmc=$valTrimmed game:paper not:funny -is:acorn -set:unf -set:ust -set:unh -set:ugl -set:und"
-                        Log.d("MainActivity", "Buscando random con query: $query")
+                        Log.d("MainActivity", "Searching random with query: $query")
                         val response = scryfallApi.getCard(query)
                         
                         val urls = mutableListOf<String>()
@@ -245,31 +245,31 @@ fun BuscadorCartas() {
                                 }.trim()
                             }
 
-                            printerStatus = "Descargando imágenes..."
+                            printerStatus = "Downloading images..."
                             val bitmaps = urls.mapNotNull { downloadBitmap(context, it, 600) }
                             if (bitmaps.isNotEmpty()) {
                                 val combined = combineBitmaps(bitmaps)
                                 combinedBitmap = combined
-                                printerStatus = "Imprimiendo imagen..."
+                                printerStatus = "Printing image..."
                                 CatPrinter.printBitmap(context, combined, selectedPrinterAddress) { status ->
                                     printerStatus = status
                                 }
                             } else {
-                                printerStatus = "Error al descargar imágenes"
+                                printerStatus = "Error downloading images"
                             }
                         } else {
-                            Toast.makeText(context, "Carta sin imagen disponible", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Card has no image available", Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: HttpException) {
                         val errorMsg = e.response()?.errorBody()?.string() ?: e.message()
                         Log.e("MainActivity", "HttpError ${e.code()}: $errorMsg")
                         if (e.code() == 404) {
-                            Toast.makeText(context, "No se encontró la carta o criterios", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Card or criteria not found", Toast.LENGTH_LONG).show()
                         } else {
-                            Toast.makeText(context, "Error Scryfall (${e.code()})", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Scryfall Error (${e.code()})", Toast.LENGTH_LONG).show()
                         }
                     } catch (e: Exception) {
-                        Log.e("MainActivity", "Error general", e)
+                        Log.e("MainActivity", "General error", e)
                         Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                     } finally {
                         isLoading = false
@@ -282,7 +282,7 @@ fun BuscadorCartas() {
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             } else {
-                Text("Buscar e Imprimir Carta")
+                Text("Search and Print Card")
             }
         }
 
@@ -320,7 +320,7 @@ fun BuscadorCartas() {
             Button(
                 onClick = {
                     scope.launch {
-                        printerStatus = "Reimprimiendo..."
+                        printerStatus = "Reprinting..."
                         CatPrinter.printBitmap(context, bitmap, selectedPrinterAddress) { status ->
                             printerStatus = status
                         }
@@ -329,7 +329,7 @@ fun BuscadorCartas() {
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {
-                Text("Reimprimir Carta Completa")
+                Text("Reprint Full Card")
             }
 
             oracleText?.let { text ->
@@ -337,7 +337,7 @@ fun BuscadorCartas() {
                 OutlinedButton(
                     onClick = {
                         scope.launch {
-                            printerStatus = "Imprimiendo texto..."
+                            printerStatus = "Printing text..."
                             CatPrinter.printText(context, text, selectedPrinterAddress) { status ->
                                 printerStatus = status
                             }
@@ -345,7 +345,7 @@ fun BuscadorCartas() {
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Imprimir Oracle Text")
+                    Text("Print Oracle Text")
                 }
             }
 
@@ -386,18 +386,18 @@ fun BuscadorCartas() {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (selectedPrinterAddress == null) "Configurar Impresora" else "Impresora: $selectedPrinterAddress")
+            Text(if (selectedPrinterAddress == null) "Configure Printer" else "Printer: $selectedPrinterAddress")
         }
     }
 
     if (showDeviceSelector) {
         AlertDialog(
             onDismissRequest = { showDeviceSelector = false },
-            title = { Text("Seleccionar Impresora") },
+            title = { Text("Select Printer") },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     if (pairedDevices.isEmpty()) {
-                        Text("No hay dispositivos vinculados.")
+                        Text("No paired devices found.")
                     } else {
                         pairedDevices.forEach { (name, address) ->
                             Row(
@@ -426,7 +426,7 @@ fun BuscadorCartas() {
             },
             confirmButton = {
                 TextButton(onClick = { showDeviceSelector = false }) {
-                    Text("Cerrar")
+                    Text("Close")
                 }
             }
         )
