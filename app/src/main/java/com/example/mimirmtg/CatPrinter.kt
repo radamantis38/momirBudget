@@ -72,28 +72,28 @@ object CatPrinter {
             val g = (p shr 8) and 0xFF
             val b = p and 0xFF
             
-            // Luminancia con corrección Gamma agresiva (0.45) para negros profundos y blancos limpios
+            // Perfil Maestro: Gamma 0.75 para recuperar luminosidad en el arte
             val luminance = 0.299f * r + 0.587f * g + 0.114f * b
             val normalized = luminance / 255f
-            val corrected = Math.pow(normalized.toDouble(), 0.45).toFloat() * 255f
+            val corrected = Math.pow(normalized.toDouble(), 0.75).toFloat() * 255f
             
-            // Aumento de contraste y ajuste de curva para resaltar texto de MTG
-            val v = (corrected - 128f) * 2.5f + 128f
+            // Contraste equilibrado con pivote en 120
+            val v = (corrected - 120f) * 2.2f + 120f
             gray[i] = v.coerceIn(0f, 255f)
         }
 
-        // Sharpening mejorado (High-Pass Filter)
+        // Sharpening mejorado (High-Pass Filter Ultra-Agresivo)
         val sharpened = FloatArray(width * height)
         for (y in 0 until height) {
             for (x in 0 until width) {
                 val idx = y * width + x
                 if (x > 0 && x < width - 1 && y > 0 && y < height - 1) {
                     val center = gray[idx]
-                    // Kernel de enfoque más agresivo
+                    // Nitidez calibrada (10x) para equilibrio entre texto y arte
                     val surrounding = gray[idx - 1] + gray[idx + 1] + gray[idx - width] + gray[idx + width] +
                                     gray[idx - width - 1] + gray[idx - width + 1] + 
                                     gray[idx + width - 1] + gray[idx + width + 1]
-                    val valSharpened = center * 13f - surrounding * 1.5f
+                    val valSharpened = center * 10f - surrounding * 1.125f
                     sharpened[idx] = valSharpened.coerceIn(0f, 255f)
                 } else {
                     sharpened[idx] = gray[idx]
@@ -496,13 +496,13 @@ object CatPrinter {
                 delay(100)
 
                 // Secuencia Maestra YHK: Reset + Handshake + Energía + Calentamiento
-                // Ajustamos valores para evitar que el consumo del cabezal frene el motor (evita "espichado")
+                // Optimizada para máxima oscuridad (energía 0xA0) y nitidez (densidad 0x1E)
                 val yhkInit = byteArrayOf(
                     0x1B, 0x40,                     // ESC @ (Initialize)
                     0x1D, 0x49, 0xF0.toByte(), 0x19, // GS I F0 19 (YHK Handshake)
-                    0x12, 0x7E, 0x03, 0x80.toByte(), // Energía moderada (0x80) para dar prioridad al motor
-                    0x1B, 0x37, 0x05, 0x50, 0x02,    // Calentamiento balanceado (t=5, interval=80)
-                    0x12, 0x23, 0x1B                // Densidad 27 (Nítido pero eficiente)
+                    0x12, 0x7E, 0x03, 0x85.toByte(), // Energía balanceada (0x85) para evitar saturación
+                    0x1B, 0x37, 0x05, 0x50, 0x02,    // Calentamiento estándar (t=5, interval=80)
+                    0x12, 0x23, 0x1A                // Densidad 26 (Nitidez óptima)
                 )
                 sendPacketInternal(gatt, characteristic, yhkInit, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT, writeDoneChannel, 20)
                 delay(500)
@@ -510,24 +510,22 @@ object CatPrinter {
                 if (rows.isNotEmpty()) {
                     onStatusUpdate("Imprimiendo YHK...")
                     
-                    // Volvemos a 1 fila por comando para evitar el efecto "espichado"
-                    // Pero con 16ms logramos que el motor no se detenga (movimiento fluido)
                     for (row in rows) {
                         val fullRow = byteArrayOf(
                             0x1D, 0x76, 0x30, 0x00, 
                             0x30, 0x00, // 48 bytes (384 dots)
-                            0x01, 0x00  // 1 fila
+                            0x01, 0x00  // 1 fila por comando para evitar el "espichado"
                         ) + row
                         
-                        // Fragmentación rápida de 20 bytes
-                        sendPacketInternal(gatt, characteristic, fullRow, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE, writeDoneChannel, 20)
+                        // Enviamos cada fila en fragmentos más grandes (40 bytes) para eficiencia
+                        sendPacketInternal(gatt, characteristic, fullRow, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE, writeDoneChannel, 40)
                         
-                        // 16ms es el límite para mantener la inercia del motor sin saturar el buffer UART
-                        delay(16)
+                        // 12ms mantiene el motor fluido y constante en dispositivos YHK
+                        delay(12)
                     }
                     
                     // 3. Feed Final
-                    delay(200)
+                    delay(500)
                     val feeds = byteArrayOf(0x0A, 0x0A, 0x0A, 0x0A, 0x0A)
                     sendPacketInternal(gatt, characteristic, feeds, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT, writeDoneChannel, 20)
                 }
@@ -587,9 +585,9 @@ object CatPrinter {
             }
             
             offset += mtuPayload
-            // Delay mínimo de 2ms para mantener el flujo sin colapsar el chip UART
+            // Delay mínimo de 1ms para mantener el flujo sin colapsar el chip UART
             if (offset < packet.size) {
-                delay(2)
+                delay(1)
             }
         }
     }
