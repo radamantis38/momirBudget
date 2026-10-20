@@ -1,0 +1,81 @@
+1001 1000 253:6 / / ro,relatime master:1 - erofs /dev/block/dm-6 ro,seclabel,user_xattr,lz4asm
+1002 1001 0:18 / /dev rw,nosuid,relatime master:2 - tmpfs tmpfs rw,seclabel,size=2839328k,nr_inodes=709832,mode=755
+1003 1002 0:19 / /dev/pts rw,relatime master:3 - devpts devpts rw,seclabel,mode=600,ptmxmode=000
+1004 1002 0:23 / /dev/blkio rw,nosuid,nodev,noexec,relatime master:8 - cgroup none rw,blkio
+1005 1002 0:24 / /dev/cg2_bpf rw,nosuid,nodev,noexec,relatime master:20 - cgroup2 none rw
+1006 1002 0:25 / /dev/cpuctl rw,nosuid,nodev,noexec,relatime master:21 - cgroup none rw,cpu
+1007 1002 0:27 / /dev/cpuset rw,nosuid,nodev,noexec,relatime master:23 - cgroup none rw,cpuset,noprefix,release_agent=/sbin/cpuset_release_agent
+1008 1002 0:28 / /dev/memcg rw,nosuid,nodev,noexec,relatime master:24 - cgroup none rw,memory
+1009 1002 0:29 / /dev/stune rw,nosuid,nodev,noexec,relatime master:25 - cgroup none rw,schedtune
+1010 1002 0:32 / /dev/iolimit rw,relatime master:30 - cgroup none rw,iolimit
+1011 1002 0:34 / /dev/workingset rw,nosuid,nodev,noexec,relatime master:32 - cgroup none rw,workingset
+1012 1002 0:35 / /dev/usb-ffs/adb rw,relatime master:33 - functionfs adb rw
+1013 1002 0:36 / /dev/usb-ffs/hdb rw,relatime master:34 - functionfs hdb rw
+1014 1002 0:37 / /dev/frz rw,relatime master:35 - cgroup none rw,freezer
+1015 1001 0:5 / /proc rw,relatime master:4 - proc proc rw,gid=3009,hidepid=2
+1016 1001 0:20 / /sys rw,relatime master:5 - sysfs sysfs rw,seclabel
+1017 1016 0:17 / /sys/fs/selinux rw,relatime master:6 - selinuxfs selinuxfs rw
+1018 1016 0:7 / /sys/kernel/debug rw,relatime master:26 - debugfs debugfs rw,seclabel
+1019 1018 0:11 / /sys/kernel/debug/tracing rw,relatime master:37 - tracefs tracefs rw,seclabel
+1020 1016 0:30 / /sys/fs/bpf rw,nosuid,nodev,noexec,relatime master:28 - bpf bpf rw
+1021 1016 0:31 / /sys/fs/pstore rw,nosuid,nodev,noexec,relatime master:29 - pstore pstore rw,seclabel
+1022 1016 0:41 / /sys/fs/cgroup rw,relatime master:49 - tmpfs none rw,seclabel,size=2839328k,nr_inodes=709832,mode=750,gid=1000
+1023 1022 0:42 / /sys/fs/cgroup/pids rw,relatime master:50 - cgroup none rw,pids
+1024 1001 0:21 / /mnt rw,nosuid,nodev,noexec,relatime master:7 - tmpfs tmpfs rw,seclabel,size=2839328k,nr_inodes=709832,mode=755,gid=1000
+1025 1024 0:33 / /mnt/update_engine rw,nosuid,nodev,relatime master:31 - tmpfs none rw,seclabel,size=2839328k,nr_inodes=709832,mode=700
+1026 1024 259:13 / /mnt/hisee_fs rw,noatime master:42 - ext4 /dev/block/by-name/hisee_fs rw,context=u:object_r:hisee_data_file:s0,data=ordered
+1027 1024 8:51 / /mnt/modem/modem_secure rw,noatime master:47 - ext4 /dev/block/by-name/modem_secure rw,context=u:object_r:modem_secure_file:s0,noauto_da_alloc,data=ordered
+1028 1024 8:58 / /mnt/modem/mnvm2:0 rw,nosuid,nodev,noatime master:48 - ext4 /dev/block/by-name/modemnvm_img rw,context=u:object_r:modem_nv_file:s0,noauto_da_alloc,data=ordered
+1029 1001 0:22 / /apex rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,size=2839328k,nr_inodes=709832,mode=755
+1030 1029 7:2 / /apex/com.android.apex.cts.shim@1 ro,nodev,noatime - ext4 /dev/block/loop2 ro,dirsync,seclabel
+1031 1029 7:2 / /apex/com.android.apex.cts.shim ro,nodev,noatime - ext4 /dev/block/loop2 ro,dirsync,seclabel
+1032 1029 7:3 / /apex/com.android.conscrypt@292103000 ro,nodev,noatime - ext4 /dev/block/loop3 ro,dirsync,seclabel
+1033 1029 7:3 / /apex/com.android.conscrypt ro,nodev,noatime - ext4 /dev/block/loop3 ro,dirsync,seclabel
+1034 1029 7:4 / /apex/com.android.media@292103020 ro,nodev,noatime - ext4 /dev/block/loop4 ro,dirsync,seclabel
+1035 1029 7:4 / /apex/com.android.media ro,nodev,noatime - ext4 /dev/block/loop4 ro,dirsync,seclabel
+1036 1029 7:5 / /apex/com.android.media.swcodec@292103016 ro,nodev,noatime - ext4 /dev/block/loop5 ro,dirsync,seclabel
+1037 1029 7:5 / /apex/com.android.media.swcodec ro,nodev,noatime - ext4 /dev/block/loop5 ro,dirsync,seclabel
+1038 1029 7:6 / /apex/com.android.resolv@292103001 ro,nodev,noatime - ext4 /dev/block/loop6 ro,dirsync,seclabel
+1039 1029 7:6 / /apex/com.android.resolv ro,nodev,noatime - ext4 /dev/block/loop6 ro,dirsync,seclabel
+1040 1029 7:7 / /apex/com.android.runtime@1 ro,nodev,noatime - ext4 /dev/block/loop7 ro,dirsync,seclabel
+1041 1029 7:7 / /apex/com.android.runtime ro,nodev,noatime - ext4 /dev/block/loop7 ro,dirsync,seclabel
+1042 1029 7:8 / /apex/com.android.tzdata@292103001 ro,nodev,noatime - ext4 /dev/block/loop8 ro,dirsync,seclabel
+1043 1029 7:8 / /apex/com.android.tzdata ro,nodev,noatime - ext4 /dev/block/loop8 ro,dirsync,seclabel
+1044 1001 253:5 / /patch_hw ro,relatime master:9 - erofs /dev/block/dm-5 ro,seclabel,user_xattr,lz4asm
+1045 1001 253:7 / /cust ro,relatime master:10 - erofs /dev/block/dm-7 ro,seclabel,user_xattr,lz4asm
+1046 1001 253:8 / /hw_product ro,relatime master:11 - erofs /dev/block/dm-8 ro,seclabel,user_xattr,lz4asm
+1047 1001 253:9 / /odm ro,relatime master:12 - erofs /dev/block/dm-9 ro,seclabel,user_xattr,lz4asm
+1048 1001 253:10 / /preload ro,relatime master:13 - erofs /dev/block/dm-10 ro,seclabel,user_xattr,lz4asm
+1049 1001 253:11 / /prets ro,relatime master:14 - erofs /dev/block/dm-11 ro,seclabel,user_xattr,lz4asm
+1050 1001 253:12 / /pretvs ro,relatime master:15 - erofs /dev/block/dm-12 ro,seclabel,user_xattr,lz4asm
+1051 1001 253:13 / /vendor ro,relatime master:16 - erofs /dev/block/dm-13 ro,seclabel,user_xattr,lz4asm
+1052 1051 253:14 / /vendor/modem/modem_driver ro,relatime master:17 - ext4 /dev/block/dm-14 ro,seclabel,data=ordered
+1053 1051 253:15 / /vendor/preavs ro,relatime master:18 - erofs /dev/block/dm-15 ro,seclabel,user_xattr,lz4asm
+1054 1051 259:31 / /vendor/modem/modem_fw ro,relatime master:46 - ext4 /dev/block/by-name/modem_fw ro,context=u:object_r:modem_fw_file:s0,data=ordered
+1055 1001 253:16 / /version ro,relatime master:19 - erofs /dev/block/dm-16 ro,seclabel,user_xattr,lz4asm
+1056 1001 0:26 / /acct rw,nosuid,nodev,noexec,relatime master:22 - cgroup none rw,cpuacct
+1057 1001 0:16 / /config rw,nosuid,nodev,noexec,relatime master:27 - configfs none rw
+1058 1001 8:55 / /sec_storage rw,nosuid,nodev,noatime master:36 - ext4 /dev/block/bootdevice/by-name/secure_storage rw,context=u:object_r:teecd_data_file:s0,discard,nodelalloc,data=journal
+1059 1001 259:1 / /splash2 rw,nosuid,nodev,noatime master:38 - ext4 /dev/block/by-name/splash2 rw,context=u:object_r:splash2_data_file:s0,data=ordered
+1060 1001 259:55 / /data rw,nosuid,nodev,noatime master:39 - f2fs /dev/block/by-name/userdata rw,seclabel,background_gc=on,discard,no_heap,user_xattr,inline_xattr,acl,inline_data,inline_dentry,extent_cache,mode=adaptive,inline_encrypt,sdp_encrypt,active_logs=6,reserve_root=5120,resuid=0,resgid=1000,alloc_mode=default,fsync_mode=posix
+1061 1060 253:6 /system/app/HwBehaviorAuth/HwBehaviorAuth.apk /data/app/com.huawei.behaviorauth-X_81_JQXgY3_K2VKhI6bqQ==/HwBehaviorAuth.apk ro,relatime master:1 - erofs /dev/block/dm-6 ro,seclabel,user_xattr,lz4asm
+1062 1060 253:6 /system/priv-app/Settings/Resolution.apk /data/app/com.android.settings-Q5jPXLhFAUzbB8arGNk0Kg==/Resolution.apk ro,relatime master:1 - erofs /dev/block/dm-6 ro,seclabel,user_xattr,lz4asm
+1063 1060 253:6 /system/priv-app/Settings/SettingsTheme.apk /data/app/com.android.settings-Q5jPXLhFAUzbB8arGNk0Kg==/SettingsTheme.apk ro,relatime master:1 - erofs /dev/block/dm-6 ro,seclabel,user_xattr,lz4asm
+1064 1001 253:17 / /preas ro,relatime master:40 - erofs /dev/block/dm-17 ro,seclabel,user_xattr,lz4asm
+1065 1001 259:6 / /cache rw,nosuid,nodev,noatime master:41 - ext4 /dev/block/by-name/cache rw,seclabel,data=ordered
+1066 1001 0:38 / /system/product/priv-app ro,relatime master:43 - overlay overlay ro,seclabel,lowerdir=/preas/priv-app:/system/product/priv-app
+1067 1001 0:39 / /system/product/app ro,relatime master:44 - overlay overlay ro,seclabel,lowerdir=/preas/app:/system/product/app
+1068 1001 0:40 / /system/product/etc/permissions ro,relatime master:45 - overlay overlay ro,seclabel,lowerdir=/preas/oversea/permissions:/system/product/etc/permissions
+1069 1001 0:21 /runtime/full /storage rw,nosuid,nodev,noexec,relatime master:7 - tmpfs tmpfs rw,seclabel,size=2839328k,nr_inodes=709832,mode=755,gid=1000
+1070 1069 0:21 /user/0 /storage/self rw,nosuid,nodev,noexec,relatime master:7 - tmpfs tmpfs rw,seclabel,size=2839328k,nr_inodes=709832,mode=755,gid=1000
+2239 1024 0:43 / /mnt/runtime/default/emulated rw,nosuid,nodev,noexec,noatime master:51 - sdcardfs /data/media rw,fsuid=1023,fsgid=1023,gid=1015,multiuser,mask=6,derive_gid,default_normal,reserved=20MB,unshared_obb
+2273 1024 0:43 / /mnt/runtime/read/emulated rw,nosuid,nodev,noexec,noatime master:51 - sdcardfs /data/media rw,fsuid=1023,fsgid=1023,gid=9997,multiuser,mask=23,derive_gid,default_normal,reserved=20MB,unshared_obb
+2304 1024 0:43 / /mnt/runtime/write/emulated rw,nosuid,nodev,noexec,noatime master:51 - sdcardfs /data/media rw,fsuid=1023,fsgid=1023,gid=9997,multiuser,mask=7,derive_gid,default_normal,reserved=20MB,unshared_obb
+2341 1069 0:43 / /storage/emulated rw,nosuid,nodev,noexec,noatime master:51 - sdcardfs /data/media rw,fsuid=1023,fsgid=1023,gid=9997,multiuser,mask=7,derive_gid,default_normal,reserved=20MB,unshared_obb
+2340 1024 0:43 / /mnt/runtime/full/emulated rw,nosuid,nodev,noexec,noatime master:51 - sdcardfs /data/media rw,fsuid=1023,fsgid=1023,gid=9997,multiuser,mask=7,derive_gid,default_normal,reserved=20MB,unshared_obb
+3380 1024 0:44 / /mnt/mdfs/.hmdfs rw,relatime master:52 - hmdfs /data/misc_ce/0/kdfs/storage rw,sensitive,merge_enable,ra_pages=128,account=1810340034728396902,recv_uid=1023,cache_dir=/data/misc_ce/0/kdfs/cache/16448759908547494974,real_dst=/mnt/mdfs/.hmdfs,offline_stash,dentry_cache
+3424 1024 0:44 / /mnt/mdfs/account_trust rw,relatime master:52 - hmdfs /data/misc_ce/0/kdfs/storage rw,sensitive,merge_enable,ra_pages=128,account=1810340034728396902,recv_uid=1023,cache_dir=/data/misc_ce/0/kdfs/cache/16448759908547494974,real_dst=/mnt/mdfs/.hmdfs,offline_stash,dentry_cache
+3468 1024 0:45 / /mnt/mdfs/sdcard rw,relatime master:53 - hmdfs /data/media/0 rw,insensitive,merge_disable,ra_pages=128,account=1810340034728396902,recv_uid=1023,cache_dir=/data/misc_ce/0/kdfs/cache/16448759910518911873,real_dst=/mnt/mdfs/sdcard,offline_stash,dentry_cache
+3512 1024 0:46 / /mnt/mdfs/external_storage rw,relatime master:54 - hmdfs /mnt/media_rw rw,insensitive,merge_disable,ra_pages=128,account=1810340034728396902,recv_uid=1023,cache_dir=/data/misc_ce/0/kdfs/cache/14998924782874330279,real_dst=/mnt/mdfs/external_storage,no_offline_stash,dentry_cache,external_storage
+3600 1024 0:44 / /mnt/mdfs/1810340034728396902 rw,relatime master:52 - hmdfs /data/misc_ce/0/kdfs/storage rw,sensitive,merge_enable,ra_pages=128,account=1810340034728396902,recv_uid=1023,cache_dir=/data/misc_ce/0/kdfs/cache/16448759908547494974,real_dst=/mnt/mdfs/.hmdfs,offline_stash,dentry_cache
+494 1024 0:47 / /mnt/mdfs/groups rw,nosuid,nodev,relatime master:55 - fuse mdfs rw,user_id=0,group_id=0,allow_other

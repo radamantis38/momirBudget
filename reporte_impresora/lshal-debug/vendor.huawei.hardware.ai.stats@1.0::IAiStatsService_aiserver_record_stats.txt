@@ -1,0 +1,1 @@
+*** command 'lshal debug -E vendor.huawei.hardware.ai.stats@1.0::IAiStatsService/aiserver_record_stats' failed: exit code 128

@@ -1,0 +1,1 @@
+*** command 'lshal debug -E android.hardware.camera.provider@2.5::ICameraProvider/external/0' failed: exit code 128
