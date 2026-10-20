@@ -1,18 +1,15 @@
 package com.example.mimirmtg
 
 import android.Manifest
-import android.content.ContentValues
-import android.content.Context
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -21,13 +18,35 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -41,6 +60,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.example.mimirmtg.ui.theme.MimirMtgTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -48,6 +68,7 @@ import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import android.annotation.SuppressLint
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,9 +91,8 @@ fun BuscadorCartas() {
     val context = LocalContext.current
     val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     var numero by remember { mutableStateOf("") }
-    var cardName by remember { mutableStateOf<String?>(null) }
-    var allImageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
     var oracleText by remember { mutableStateOf<String?>(null) }
+    var combinedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var printerStatus by remember { mutableStateOf("") }
     val sharedPrefs = remember { context.getSharedPreferences("printer_prefs", Context.MODE_PRIVATE) }
@@ -82,55 +102,8 @@ fun BuscadorCartas() {
     var isScanning by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    val scanCallback = remember {
-        object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                val device = result.device
-                val name = try { device.name } catch (e: SecurityException) { null } ?: "Desconocido"
-                val address = device.address
-                if (pairedDevices.none { it.second == address }) {
-                    pairedDevices = pairedDevices + (name to address)
-                }
-            }
-        }
-    }
-
-    fun startScan() {
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val scanner = bluetoothManager.adapter?.bluetoothLeScanner
-        if (scanner != null && !isScanning) {
-            isScanning = true
-            pairedDevices = CatPrinter.getPairedDevices(context)
-            try {
-                scanner.startScan(scanCallback)
-                scope.launch {
-                    kotlinx.coroutines.delay(10000)
-                    try { scanner.stopScan(scanCallback) } catch(e: SecurityException) {}
-                    isScanning = false
-                }
-            } catch (e: SecurityException) {
-                isScanning = false
-            }
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { perms ->
-        val allGranted = perms.values.all { it }
-        if (allGranted) {
-            pairedDevices = CatPrinter.getPairedDevices(context)
-            showDeviceSelector = true
-            startScan()
-        } else {
-            Toast.makeText(context, "Permisos de Bluetooth denegados", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     val scryfallApi = remember {
         val client = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .header("User-Agent", "MimirMtgApp/1.0")
@@ -138,14 +111,62 @@ fun BuscadorCartas() {
                     .build()
                 chain.proceed(request)
             }
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
             .build()
-
         Retrofit.Builder()
             .baseUrl("https://api.scryfall.com/")
-            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
             .build()
             .create(ScryfallApi::class.java)
+    }
+
+    val scanCallback = remember {
+        object : ScanCallback() {
+            override fun onScanResult(callbackType: Int, result: ScanResult) {
+                val device = result.device
+                @SuppressLint("MissingPermission")
+                val name = device.name ?: "Desconocido"
+                val address = device.address
+                if (address != null && !pairedDevices.any { it.second == address }) {
+                    pairedDevices = (pairedDevices + (name to address)).distinctBy { it.second }
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun startScan() {
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val scanner = bluetoothManager.adapter?.bluetoothLeScanner
+        if (scanner != null && !isScanning) {
+            isScanning = true
+            scope.launch {
+                try {
+                    scanner.startScan(scanCallback)
+                    delay(10000)
+                    scanner.stopScan(scanCallback)
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error escaneando", e)
+                } finally {
+                    isScanning = false
+                }
+            }
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted) {
+            pairedDevices = CatPrinter.getPairedDevices(context)
+            showDeviceSelector = true
+            startScan()
+        } else {
+            Toast.makeText(context, "Permisos necesarios para Bluetooth", Toast.LENGTH_SHORT).show()
+        }
     }
 
     Column(
@@ -157,86 +178,75 @@ fun BuscadorCartas() {
         OutlinedTextField(
             value = numero,
             onValueChange = { if (it.all { char -> char.isDigit() }) numero = it },
-            label = { Text("Valor de CMC (ej: 3)") },
+            label = { Text("CMC de Criatura Aleatoria (ej: 3)") },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = androidx.compose.ui.text.input.ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = { keyboardController?.hide() }
-            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
                 keyboardController?.hide()
-                val valTrimmed = numero.trim()
-                if (valTrimmed.isBlank()) {
-                    Toast.makeText(context, "Ingresa un número", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
                 
                 scope.launch {
                     isLoading = true
                     printerStatus = ""
-                    cardName = null
-                    allImageUrls = emptyList()
+                    combinedBitmap = null
                     oracleText = null
                     try {
+                        val valTrimmed = numero.trim()
+                        if (valTrimmed.isBlank()) {
+                            Toast.makeText(context, "Ingresa un número para el CMC", Toast.LENGTH_SHORT).show()
+                            isLoading = false
+                            return@launch
+                        }
                         val query = "t:creature cmc=$valTrimmed game:paper not:funny -is:acorn -set:unf -set:ust -set:unh -set:ugl -set:und"
-                        Log.d("MainActivity", "Buscando con query: $query")
+                        Log.d("MainActivity", "Buscando random con query: $query")
                         val response = scryfallApi.getCard(query)
                         
                         val urls = mutableListOf<String>()
-                        val texts = mutableListOf<String>()
-                        
-                        val faces = response.card_faces
-                        if (!faces.isNullOrEmpty()) {
-                            faces.forEach { face ->
-                                val sb = StringBuilder()
-                                sb.append(face.name ?: "Desconocida")
-                                if (!face.mana_cost.isNullOrBlank()) sb.append("  ${face.mana_cost}")
-                                sb.append("\n${face.type_line ?: ""}")
-                                if (!face.oracle_text.isNullOrBlank()) sb.append("\n\n${face.oracle_text}")
-                                if (!face.power.isNullOrBlank() || !face.toughness.isNullOrBlank()) {
-                                    sb.append("\n\n${face.power ?: "?"}/${face.toughness ?: "?"}")
-                                }
-                                texts.add(sb.toString())
-                                
-                                face.image_uris?.normal?.let { urls.add(it) }
-                            }
-                            // Si las caras no tienen imagen propia (Split, Flip, Adventure, Prepare) usamos la del root
-                            if (urls.isEmpty() && response.image_uris != null) {
-                                urls.add(response.image_uris.normal)
-                            }
-                        } else {
-                            if (response.image_uris != null) {
-                                urls.add(response.image_uris.normal)
-                            }
-                            val sb = StringBuilder()
-                            sb.append(response.name ?: "Desconocida")
-                            if (!response.mana_cost.isNullOrBlank()) sb.append("  ${response.mana_cost}")
-                            sb.append("\n${response.type_line ?: ""}")
-                            if (!response.oracle_text.isNullOrBlank()) sb.append("\n\n${response.oracle_text}")
-                            if (!response.power.isNullOrBlank() || !response.toughness.isNullOrBlank()) {
-                                sb.append("\n\n${response.power ?: "?"}/${response.toughness ?: "?"}")
-                            }
-                            texts.add(sb.toString())
+                        response.card_faces?.forEach { face ->
+                            face.image_uris?.normal?.let { urls.add(it) }
                         }
-
+                        if (urls.isEmpty()) {
+                            response.image_uris?.normal?.let { urls.add(it) }
+                        }
+                        
                         if (urls.isNotEmpty()) {
-                            cardName = response.name
-                            allImageUrls = urls
-                            oracleText = texts.joinToString("\n\n")
-                            
-                        printerStatus = "Descargando imagen..."
-                        val bitmaps = urls.mapNotNull { downloadBitmap(context, it, 600) }
-                        if (bitmaps.isNotEmpty()) {
+                            // Procesar Oracle Text (Nombre, Coste, Tipo, Reglas, P/T o Lealtad)
+                            oracleText = if (!response.card_faces.isNullOrEmpty()) {
+                                response.card_faces.joinToString("\n---\n") { face ->
+                                    buildString {
+                                        face.name?.let { appendLine(it) }
+                                        face.mana_cost?.takeIf { it.isNotBlank() }?.let { appendLine(it) }
+                                        face.type_line?.let { appendLine(it) }
+                                        face.oracle_text?.let { appendLine(it) }
+                                        if (!face.power.isNullOrBlank() || !face.toughness.isNullOrBlank()) {
+                                            appendLine("${face.power ?: "?"}/${face.toughness ?: "?"}")
+                                        }
+                                        face.loyalty?.let { appendLine("Loyalty: $it") }
+                                    }.trim()
+                                }
+                            } else {
+                                buildString {
+                                    response.name?.let { appendLine(it) }
+                                    response.mana_cost?.takeIf { it.isNotBlank() }?.let { appendLine(it) }
+                                    response.type_line?.let { appendLine(it) }
+                                    response.oracle_text?.let { appendLine(it) }
+                                    if (!response.power.isNullOrBlank() || !response.toughness.isNullOrBlank()) {
+                                        appendLine("${response.power ?: "?"}/${response.toughness ?: "?"}")
+                                    }
+                                    response.loyalty?.let { appendLine("Loyalty: $it") }
+                                }.trim()
+                            }
+
+                            printerStatus = "Descargando imágenes..."
+                            val bitmaps = urls.mapNotNull { downloadBitmap(context, it, 600) }
+                            if (bitmaps.isNotEmpty()) {
                                 val combined = combineBitmaps(bitmaps)
+                                combinedBitmap = combined
                                 printerStatus = "Imprimiendo imagen..."
                                 CatPrinter.printBitmap(context, combined, selectedPrinterAddress) { status ->
                                     printerStatus = status
@@ -248,12 +258,15 @@ fun BuscadorCartas() {
                             Toast.makeText(context, "Carta sin imagen disponible", Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: HttpException) {
+                        val errorMsg = e.response()?.errorBody()?.string() ?: e.message()
+                        Log.e("MainActivity", "HttpError ${e.code()}: $errorMsg")
                         if (e.code() == 404) {
-                            Toast.makeText(context, "No se encontraron criaturas", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "No se encontró la carta o criterios", Toast.LENGTH_LONG).show()
                         } else {
-                            Toast.makeText(context, "Error del servidor: ${e.code()}", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Error Scryfall (${e.code()})", Toast.LENGTH_LONG).show()
                         }
                     } catch (e: Exception) {
+                        Log.e("MainActivity", "Error general", e)
                         Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                     } finally {
                         isLoading = false
@@ -272,12 +285,7 @@ fun BuscadorCartas() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        cardName?.let {
-            Text(text = it, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        if (allImageUrls.isNotEmpty()) {
+        combinedBitmap?.let { bitmap ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -285,28 +293,18 @@ fun BuscadorCartas() {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                allImageUrls.forEachIndexed { index, url ->
-                    if (allImageUrls.size > 1) {
-                        Text(
-                            text = "Cara ${index + 1}",
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(url)
-                            .crossfade(true)
-                            .addHeader("User-Agent", "MimirMtgApp/1.0")
-                            .build(),
-                        contentDescription = "Carta MTG Face $index",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(350.dp)
-                            .padding(8.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(bitmap)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Carta MTG",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp)
+                        .padding(8.dp),
+                    contentScale = ContentScale.Fit
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -314,23 +312,16 @@ fun BuscadorCartas() {
             Button(
                 onClick = {
                     scope.launch {
-                        printerStatus = "Descargando para reimprimir..."
-                        val bitmaps = allImageUrls.mapNotNull { downloadBitmap(context, it, 600) }
-                        if (bitmaps.isNotEmpty()) {
-                            val combined = combineBitmaps(bitmaps)
-                            printerStatus = "Reimprimiendo..."
-                            CatPrinter.printBitmap(context, combined, selectedPrinterAddress) { status ->
-                                printerStatus = status
-                            }
-                        } else {
-                            printerStatus = "Error al descargar imágenes"
+                        printerStatus = "Reimprimiendo..."
+                        CatPrinter.printBitmap(context, bitmap, selectedPrinterAddress) { status ->
+                            printerStatus = status
                         }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {
-                Text(if (allImageUrls.size > 1) "Reimprimir ambas caras" else "Reimprimir Carta")
+                Text("Reimprimir Carta Completa")
             }
 
             oracleText?.let { text ->
@@ -350,19 +341,17 @@ fun BuscadorCartas() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             if (printerStatus.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = printerStatus,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.height(4.dp))
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedButton(
             onClick = {
@@ -475,38 +464,4 @@ private fun combineBitmaps(bitmaps: List<Bitmap>): Bitmap {
         currentY += bitmap.height + spacing
     }
     return result
-}
-
-private suspend fun saveImageToGallery(context: Context, url: String) {
-    withContext(Dispatchers.IO) {
-        try {
-            val loader = ImageLoader(context)
-            val request = ImageRequest.Builder(context)
-                .data(url)
-                .addHeader("User-Agent", "MimirMtgApp/1.0")
-                .allowHardware(false)
-                .build()
-
-            val result = (loader.execute(request) as? SuccessResult)?.drawable
-            val bitmap = (result as? BitmapDrawable)?.bitmap ?: return@withContext
-
-            val filename = "MTG_${System.currentTimeMillis()}.jpg"
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/MimirMtg")
-            }
-
-            val contentResolver = context.contentResolver
-            val imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-            imageUri?.let { uri ->
-                contentResolver.openOutputStream(uri)?.use { fos ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Error guardando", e)
-        }
-    }
 }

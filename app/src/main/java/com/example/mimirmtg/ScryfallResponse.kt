@@ -10,6 +10,8 @@ data class ScryfallResponse(
     val oracle_text: String? = null,
     val power: String? = null,
     val toughness: String? = null,
+    val loyalty: String? = null,
+    val flavor_text: String? = null,
     val image_uris: ImageUris? = null,
     val card_faces: List<CardFace>? = null
 )
@@ -21,6 +23,8 @@ data class CardFace(
     val oracle_text: String? = null,
     val power: String? = null,
     val toughness: String? = null,
+    val loyalty: String? = null,
+    val flavor_text: String? = null,
     val image_uris: ImageUris? = null
 )
 
@@ -31,7 +35,4 @@ data class ImageUris(
 interface ScryfallApi {
     @GET("cards/random")
     suspend fun getCard(@Query("q") query: String): ScryfallResponse
-
-    @GET("cards/named")
-    suspend fun getCardNamed(@Query("fuzzy") name: String): ScryfallResponse
 }
