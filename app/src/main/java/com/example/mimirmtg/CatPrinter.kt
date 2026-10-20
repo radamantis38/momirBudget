@@ -496,12 +496,13 @@ object CatPrinter {
                 delay(100)
 
                 // Secuencia Maestra YHK: Reset + Handshake + Energía + Calentamiento
+                // Ajustamos valores para evitar que el consumo del cabezal frene el motor (evita "espichado")
                 val yhkInit = byteArrayOf(
                     0x1B, 0x40,                     // ESC @ (Initialize)
                     0x1D, 0x49, 0xF0.toByte(), 0x19, // GS I F0 19 (YHK Handshake)
-                    0x12, 0x7E, 0x03, 0xFF.toByte(), // DC2 ~ (YHK Energy Unlock / Extra Burn)
-                    0x1B, 0x37, 0x07, 0x80.toByte(), 0x02, // ESC 7 (Heating: time=7, interval=128, dots=2)
-                    0x12, 0x23, 0x1F                // DC2 # (Max Density 31)
+                    0x12, 0x7E, 0x03, 0x80.toByte(), // Energía moderada (0x80) para dar prioridad al motor
+                    0x1B, 0x37, 0x05, 0x50, 0x02,    // Calentamiento balanceado (t=5, interval=80)
+                    0x12, 0x23, 0x1B                // Densidad 27 (Nítido pero eficiente)
                 )
                 sendPacketInternal(gatt, characteristic, yhkInit, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT, writeDoneChannel, 20)
                 delay(500)
@@ -509,20 +510,20 @@ object CatPrinter {
                 if (rows.isNotEmpty()) {
                     onStatusUpdate("Imprimiendo YHK...")
                     
-                    // 2. Impresión Raster por Filas (GS v 0)
-                    // Enviamos una cabecera GS v 0 por cada fila para evitar desbordamiento del buffer UART.
+                    // Volvemos a 1 fila por comando para evitar el efecto "espichado"
+                    // Pero con 16ms logramos que el motor no se detenga (movimiento fluido)
                     for (row in rows) {
-                        val rowHeader = byteArrayOf(
+                        val fullRow = byteArrayOf(
                             0x1D, 0x76, 0x30, 0x00, 
-                            0x30, 0x00, // 48 bytes de ancho (384 dots)
-                            0x01, 0x00  // 1 fila de alto
-                        )
-                        val fullRow = rowHeader + row
-                        // Usamos NO_RESPONSE para los datos de imagen para mayor velocidad
+                            0x30, 0x00, // 48 bytes (384 dots)
+                            0x01, 0x00  // 1 fila
+                        ) + row
+                        
+                        // Fragmentación rápida de 20 bytes
                         sendPacketInternal(gatt, characteristic, fullRow, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE, writeDoneChannel, 20)
                         
-                        // Retardo de 32ms: Crucial para que el cabezal térmico alcance la temperatura de quemado
-                        delay(32)
+                        // 16ms es el límite para mantener la inercia del motor sin saturar el buffer UART
+                        delay(16)
                     }
                     
                     // 3. Feed Final
@@ -586,9 +587,9 @@ object CatPrinter {
             }
             
             offset += mtuPayload
-            // Reducimos el delay entre fragmentos de un mismo paquete a 10ms para estabilidad
+            // Delay mínimo de 2ms para mantener el flujo sin colapsar el chip UART
             if (offset < packet.size) {
-                delay(10)
+                delay(2)
             }
         }
     }

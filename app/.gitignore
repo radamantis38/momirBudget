@@ -1,1 +1,5 @@
 /build
+*.iml
+*.jks
+*.p12
+*.key

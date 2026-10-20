@@ -1,9 +1,6 @@
 *.iml
 .gradle
 /local.properties
-reporte_impresora/
-reporte_impresora2/
-*.zip
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
@@ -15,7 +12,7 @@ reporte_impresora2/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+*.zip
 reporte_impresora/
 reporte_impresora2/
-*.zip
+.kotlin/

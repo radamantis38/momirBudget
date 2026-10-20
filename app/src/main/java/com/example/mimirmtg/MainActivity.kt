@@ -360,30 +360,6 @@ fun BuscadorCartas() {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
             }
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = {
-                        scope.launch {
-                            CatPrinter.feedPaper(context, selectedPrinterAddress) { printerStatus = it }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Probar Feed")
-                }
-                
-                OutlinedButton(
-                    onClick = {
-                        scope.launch {
-                            CatPrinter.tryEscPos(context, selectedPrinterAddress) { printerStatus = it }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Probar ESC/POS")
-                }
-            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
