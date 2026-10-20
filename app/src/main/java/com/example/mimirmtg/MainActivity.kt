@@ -91,6 +91,7 @@ fun BuscadorCartas() {
     val context = LocalContext.current
     val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     var numero by remember { mutableStateOf("") }
+    var cardName by remember { mutableStateOf<String?>(null) }
     var oracleText by remember { mutableStateOf<String?>(null) }
     var combinedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -193,6 +194,7 @@ fun BuscadorCartas() {
                 scope.launch {
                     isLoading = true
                     printerStatus = ""
+                    cardName = null
                     combinedBitmap = null
                     oracleText = null
                     try {
@@ -215,6 +217,7 @@ fun BuscadorCartas() {
                         }
                         
                         if (urls.isNotEmpty()) {
+                            cardName = response.name
                             // Procesar Oracle Text (Nombre, Coste, Tipo, Reglas, P/T o Lealtad)
                             oracleText = if (!response.card_faces.isNullOrEmpty()) {
                                 response.card_faces.joinToString("\n---\n") { face ->
@@ -284,6 +287,11 @@ fun BuscadorCartas() {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        cardName?.let {
+            Text(text = it, style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         combinedBitmap?.let { bitmap ->
             Column(

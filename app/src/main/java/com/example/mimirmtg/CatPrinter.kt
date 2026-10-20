@@ -524,9 +524,9 @@ object CatPrinter {
                         delay(12)
                     }
                     
-                    // 3. Feed Final
+                    // 3. Feed Final (Ajustado a 6 líneas para el corte manual)
                     delay(500)
-                    val feeds = byteArrayOf(0x0A, 0x0A, 0x0A, 0x0A, 0x0A)
+                    val feeds = ByteArray(6) { 0x0A.toByte() }
                     sendPacketInternal(gatt, characteristic, feeds, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT, writeDoneChannel, 20)
                 }
 
