@@ -46,3 +46,20 @@ You can download the latest version of the application from the link below:
 
 *   **Card API:** [Scryfall](https://scryfall.com/docs/api)
 *   **Protocol:** Based on reverse engineering of WalkPrint and ESC/POS protocols for YHK hardware.
+
+## Disclaimer
+
+This project is unofficial and is not affiliated with, endorsed, sponsored, or specifically approved by Wizards of the Coast LLC.
+
+Magic: The Gathering, MTG, and all associated names, logos, characters, artwork, and other related intellectual property are the property of their respective owners.
+
+This project is a fan-made creation intended for personal, educational, and entertainment purposes.
+
+No ownership of Magic: The Gathering intellectual property is claimed by the creator of this project.
+
+## Credits
+
+Magic: The Gathering is a trademark of Wizards of the Coast LLC, a subsidiary of Hasbro, Inc.
+
+For more information, visit the official Magic: The Gathering website.
+
